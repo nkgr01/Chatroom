@@ -1,0 +1,5 @@
+.chatmedia-container { max-width: 600px; margin: 48px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); padding: 32px 24px; }
+.chatmedia-container h2 { color: #2563eb; margin-bottom: 12px; }
+.chatmedia-container ul { list-style: none; padding: 0; }
+.chatmedia-container li { margin-bottom: 10px; }
+.chatmedia-container a { color: #2563eb; text-decoration: underline; }

@@ -1,0 +1,6 @@
+.editprofile-container { max-width: 400px; margin: 48px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); padding: 32px 24px; }
+.editprofile-form { display: flex; flex-direction: column; gap: 12px; }
+.editprofile-form h2 { color: #2563eb; margin-bottom: 8px; }
+.editprofile-form input, .editprofile-form select { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; }
+.editprofile-form button { margin-top: 8px; padding: 8px 0; border-radius: 6px; background: #2563eb; color: #fff; border: none; font-weight: 600; cursor: pointer; }
+.editprofile-error { color: #e53e3e; background: #fff5f5; border: 1px solid #feb2b2; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; text-align: center; }

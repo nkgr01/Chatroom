@@ -1,0 +1,242 @@
+/* UserProfile.css */
+
+.userprofile-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.userprofile-header {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.userprofile-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.status-indicator.offline {
+  background: #94a3b8;
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.userprofile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 4px solid #6366f1;
+}
+
+.userprofile-container h2 {
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.userprofile-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+  text-align: left;
+}
+
+.userprofile-info-list li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.userprofile-info-list li:last-child {
+  border-bottom: none;
+}
+
+.userprofile-info-label {
+  font-weight: 600;
+  color: #64748b;
+  min-width: 120px;
+}
+
+.userprofile-info-value {
+  color: #1e293b;
+  text-align: right;
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.userprofile-edit-btn,
+.userprofile-message-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userprofile-edit-btn {
+  background: #6366f1;
+  color: white;
+}
+
+.userprofile-edit-btn:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+}
+
+.userprofile-message-btn {
+  background: #10b981;
+  color: white;
+}
+
+.userprofile-message-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.userprofile-message-btn:active,
+.userprofile-edit-btn:active {
+  transform: translateY(0);
+}
+
+.userprofile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.userprofile-back-btn {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userprofile-back-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 0.5rem;
+}
+
+.error-message {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-message h3 {
+  color: #ef4444;
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.error-message p {
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.back-btn {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #4f46e5;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .userprofile-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .userprofile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .userprofile-info-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .userprofile-info-value {
+    text-align: left;
+    margin-left: 0;
+  }
+}

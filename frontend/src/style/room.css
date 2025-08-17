@@ -1,0 +1,296 @@
+.room-container {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;
+}
+.room-sidebar { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 24px 12px; }
+.room-sidebar h3 { color: #2563eb; margin-bottom: 8px; }
+.room-sidebar p { color: #4b5563; margin-bottom: 18px; }
+.room-members { margin-top: 18px; }
+.room-member { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.room-member-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.room-main {
+  flex: 1;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100vh;
+  min-height: 0;
+  box-sizing: border-box;
+}
+.room-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 18px 12px;
+}
+.room-message-bubble {
+  max-width: 65%;
+  padding: 10px 16px;
+  border-radius: 18px;
+  margin-bottom: 2px;
+  position: relative;
+  word-break: break-word;
+  font-size: 1.04rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.04);
+}
+.room-message-bubble.mine {
+  align-self: flex-end;
+  background: #2563eb;
+  color: #fff;
+  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 18px;
+}
+.room-message-bubble.other {
+  align-self: flex-start;
+  background: #f1f5f9;
+  color: #1e293b;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 18px;
+}
+.room-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.room-message-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.room-message-sender {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+.room-message-content {
+  font-size: 1rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  margin-bottom: 4px;
+}
+.room-message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 5px;
+  align-self: flex-end;
+}
+.room-message-bubble.mine .room-message-time {
+  color: rgba(255, 255, 255, 0.8);
+}
+.room-message-bubble.other .room-message-time {
+  color: #6b7280;
+}
+.emoji-picker {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border: 1px solid #e5e7eb;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.emoji-item {
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  text-align: center;
+  transition: background-color 0.2s, transform 0.1s;
+  user-select: none;
+}
+.emoji-item:hover {
+  background-color: #f3f4f6;
+  transform: scale(1.1);
+}
+.emoji-item:active {
+  transform: scale(0.95);
+}
+.room-message { margin-bottom: 10px; }
+.room-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.04);
+  margin-top: 0;
+}
+.room-form input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; }
+.room-form button { padding: 8px 18px; border-radius: 6px; background: #2563eb; color: #fff; border: none; font-weight: 600; cursor: pointer; }
+
+.room-messages, .privatemsg-messages {
+  flex: 1;
+  overflow-y: auto;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 18px 12px;
+  margin-bottom: 12px;
+  min-height: 300px;
+  max-height: 60vh;
+}
+
+.room-message, .privatemsg-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.04);
+}
+
+.room-message b, .privatemsg-message b {
+  color: #2563eb;
+  margin-right: 6px;
+}
+
+.room-form, .privatemsg-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.04);
+}
+
+.room-form input, .privatemsg-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+}
+
+.room-form button, .privatemsg-form button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.room-form button[type='button'], .privatemsg-form button[type='button'] {
+  background: none;
+  color: #2563eb;
+  font-size: 1.3rem;
+  border: none;
+  padding: 0 8px;
+}
+
+.room-form button[type='button']:hover, .privatemsg-form button[type='button']:hover {
+  background: #e0e7ff;
+}
+
+.sticker-picker {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.04);
+}
+.sticker-picker span {
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.sticker-picker span:hover {
+  transform: scale(1.2);
+}
+
+.room-join-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #64748b;
+}
+.room-join-btn {
+  margin-top: 18px;
+  padding: 10px 28px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.room-join-btn:hover {
+  background: #1d4ed8;
+}
+
+.room-message-meta-avatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.room-message-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0e7ff;
+}
+
+html, body, #root, .app {
+  height: 100%;
+}
+.room-main {
+  height: 100%;
+  display: flex;
+}
+.msg-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.msg-action-btn:hover {
+  background: #f87171;
+  color: #fff;
+}
+.room-message-bubble .room-message-actions {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.room-message-bubble:hover .room-message-actions {
+  opacity: 1;
+  pointer-events: auto;
+}

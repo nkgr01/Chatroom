@@ -1,0 +1,357 @@
+/* PWA.css - Styles pour les bannières PWA */
+
+.pwa-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.pwa-banner.install {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.pwa-banner.update {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.pwa-banner.offline {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.banner-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.banner-text p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.banner-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.banner-btn.primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.banner-btn.primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.banner-btn.secondary {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.banner-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .banner-content {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .banner-icon {
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .banner-text h4 {
+    font-size: 15px;
+  }
+
+  .banner-text p {
+    font-size: 13px;
+  }
+
+  .banner-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .banner-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .banner-actions {
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .banner-btn {
+    flex: 1;
+    max-width: 120px;
+  }
+}
+
+/* Animation de sortie */
+.pwa-banner.hiding {
+  animation: slideDown 0.3s ease-in forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* Indicateur d'installation dans la barre de navigation */
+.install-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.install-indicator:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.install-indicator::before {
+  content: '📱';
+  font-size: 14px;
+}
+
+.install-indicator.installed {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.install-indicator.installed::before {
+  content: '✅';
+}
+
+/* Badge de mise à jour */
+.update-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+/* Styles pour les raccourcis PWA */
+.pwa-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin: 16px 0;
+}
+
+.pwa-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pwa-shortcut:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.pwa-shortcut-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pwa-shortcut-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pwa-shortcut-title {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+  margin: 0 0 2px 0;
+}
+
+.pwa-shortcut-description {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Styles pour les informations PWA */
+.pwa-info {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.pwa-info h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pwa-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.pwa-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.pwa-info-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pwa-info-value {
+  font-size: 12px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.pwa-info-value.installed {
+  color: #10b981;
+}
+
+.pwa-info-value.not-installed {
+  color: #64748b;
+}
+
+.pwa-info-value.online {
+  color: #10b981;
+}
+
+.pwa-info-value.offline {
+  color: #ef4444;
+}
+

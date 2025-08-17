@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  username    String    @unique
+  email       String    @unique
+  password    String
+  age         Int
+  gender      String
+  interests   String
+  intentions  String
+  avatar      String?
+  isOnline    Boolean   @default(false)
+  lastSeen    DateTime  @default(now())
+  isBlocked   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  sentMessages      Message[]    @relation("MessageSender")
+  receivedMessages  Message[]    @relation("MessageReceiver")
+  rooms             RoomUser[]
+  createdRooms      Room[]       @relation("RoomCreator")
+  sharedFiles       SharedFile[]
+  receivedFiles     SharedFile[] @relation("SharedFileReceiver")
+  blockedUsers      BlockedUser[] @relation("BlockerUser")
+  blockedByUsers    BlockedUser[] @relation("BlockedUser")
+  deletedMessages   DeletedMessageUser[]
+  reactions         MessageReaction[]
+
+  @@map("users")
+}
+
+model Room {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  type        String    // Rencontres, Amitié, Mariage, etc.
+  icon        String    @default("💬")
+  isPrivate   Boolean   @default(false)
+  maxMembers  Int       @default(100)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  creator     User        @relation("RoomCreator", fields: [creatorId], references: [id])
+  creatorId   Int
+  messages    Message[]
+  users       RoomUser[]
+  sharedFiles SharedFile[]
+
+  @@map("rooms")
+}
+
+model RoomUser {
+  id        Int      @id @default(autoincrement())
+  joinedAt  DateTime @default(now())
+  isMuted   Boolean  @default(false)
+  role      String   @default("member") // 'admin', 'member', 'moderator', etc.
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    Int
+
+  @@unique([userId, roomId])
+  @@map("room_users")
+}
+
+model Message {
+  id          Int       @id @default(autoincrement())
+  content     String    @db.Text // Contenu chiffré
+  isPrivate   Boolean   @default(false)
+  isEdited    Boolean   @default(false)
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  sender      User      @relation("MessageSender", fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User?     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  receiverId  Int?      // Pour les messages privés
+  room        Room?     @relation(fields: [roomId], references: [id])
+  roomId      Int?      // Pour les messages de salle
+  deletedBy   DeletedMessageUser[]
+  reactions   MessageReaction[]
+
+  @@map("messages")
+}
+
+model SharedFile {
+  id          Int       @id @default(autoincrement())
+  fileName    String
+  originalName String
+  filePath    String
+  fileType    String    // image, video, document, audio
+  fileSize    Int
+  mimeType    String
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  sender      User      @relation(fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User?     @relation("SharedFileReceiver", fields: [receiverId], references: [id])
+  receiverId  Int?      // Pour les fichiers privés
+  room        Room?     @relation(fields: [roomId], references: [id])
+  roomId      Int?
+
+  @@map("shared_files")
+}
+
+model BlockedUser {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // Relations
+  blocker   User     @relation("BlockerUser", fields: [blockerId], references: [id])
+  blockerId Int
+  blocked   User     @relation("BlockedUser", fields: [blockedId], references: [id])
+  blockedId Int
+
+  @@unique([blockerId, blockedId])
+  @@map("blocked_users")
+}
+
+model DeletedMessageUser {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId Int
+  deletedAt DateTime @default(now())
+
+  @@unique([userId, messageId])
+  @@map("deleted_message_users")
+}
+
+model MessageReaction {
+  id        Int      @id @default(autoincrement())
+  emoji     String   // Emoji de la réaction
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId Int
+
+  @@unique([userId, messageId, emoji]) // Un utilisateur ne peut réagir qu'une fois avec le même emoji
+  @@map("message_reactions")
+} 

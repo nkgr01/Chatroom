@@ -1,0 +1,25 @@
+.chatroom-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f4f6fb;
+  padding: 0;
+  min-width: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+.chatroom-main-welcome {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: #2563eb;
+  text-align: center;
+}
+
+.chatroom-welcome-icon {
+  font-size: 4rem;
+  margin-bottom: 18px;
+}
