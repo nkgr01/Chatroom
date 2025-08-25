@@ -10,7 +10,7 @@ class NotificationService {
   // Initialisation du service
   async init() {
     if (!this.isSupported) {
-      console.warn('Notifications non supportées par ce navigateur');
+  // ...log supprimé pour la production...
       return;
     }
 
@@ -22,10 +22,7 @@ class NotificationService {
       this.hasPermission = Notification.permission === 'granted';
     }
 
-    console.log('🔔 Service de notifications initialisé:', {
-      supported: this.isSupported,
-      permission: this.hasPermission
-    });
+  // ...log supprimé pour la production...
   }
 
   // Demander la permission
@@ -35,11 +32,7 @@ class NotificationService {
     const permission = await Notification.requestPermission();
     this.hasPermission = permission === 'granted';
     
-    if (this.hasPermission) {
-      console.log('✅ Permission de notifications accordée');
-    } else {
-      console.warn('❌ Permission de notifications refusée');
-    }
+  // ...log supprimé pour la production...
 
     return this.hasPermission;
   }
@@ -47,7 +40,7 @@ class NotificationService {
   // Créer une notification
   showNotification(title, options = {}) {
     if (!this.isSupported || !this.hasPermission) {
-      console.warn('Notifications non disponibles');
+      // ...log supprimé pour la production...
       return null;
     }
 
@@ -79,10 +72,10 @@ class NotificationService {
         }
       };
 
-      console.log('🔔 Notification affichée:', title);
+  // ...log supprimé pour la production...
       return notification;
     } catch (error) {
-      console.error('Erreur lors de l\'affichage de la notification:', error);
+      // ...log supprimé pour la production...
       return null;
     }
   }

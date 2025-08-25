@@ -26,7 +26,7 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('Erreur API:', error.response?.status, error.response?.data);
+  // ...log supprimé pour la production...
     
     // Si l'erreur est 401 (non autorisé), rediriger vers la page de connexion
     if (error.response?.status === 401) {

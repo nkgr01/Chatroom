@@ -66,7 +66,7 @@ const GlobalSearch = ({ isOpen, onClose }) => {
       setResults(response.data.results);
       setShowSuggestions(false);
     } catch (error) {
-      console.error('Erreur lors de la recherche:', error);
+  // ...log supprimé pour la production...
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ const GlobalSearch = ({ isOpen, onClose }) => {
       setSuggestions(response.data.suggestions);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Erreur lors de la récupération des suggestions:', error);
+  // ...log supprimé pour la production...
     }
   };
 

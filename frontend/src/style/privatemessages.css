@@ -269,7 +269,7 @@
 }
 
 .message-audio-content {
-  display: flex;
+    display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
@@ -292,8 +292,8 @@
 }
 
 .message-document-content {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
   background: var(--secondary-bg);
@@ -305,14 +305,14 @@
 }
 
 .document-details {
-  flex: 1;
+    flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
 .document-name {
-  font-weight: 600;
+    font-weight: 600;
   color: var(--text-primary);
   font-size: 0.875rem;
 }
@@ -423,7 +423,7 @@
 }
 
 .message-meta {
-  display: flex;
+    display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;

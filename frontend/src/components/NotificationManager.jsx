@@ -40,7 +40,7 @@ const NotificationManager = ({ currentUser }) => {
 
     // Écouter les nouveaux messages
     newSocket.on('newMessage', (message) => {
-      console.log('📨 Nouveau message reçu:', message);
+  // ...log supprimé pour la production...
       
       // Afficher notification seulement si la fenêtre n'est pas focalisée
       if (!isWindowFocused && message.sender.id !== currentUser.id) {
@@ -54,7 +54,7 @@ const NotificationManager = ({ currentUser }) => {
 
     // Écouter les nouveaux messages privés
     newSocket.on('newPrivateMessage', (message) => {
-      console.log('💬 Nouveau message privé reçu:', message);
+  // ...log supprimé pour la production...
       
       if (!isWindowFocused && message.sender.id !== currentUser.id) {
         notificationService.showNewMessageNotification(
@@ -78,7 +78,7 @@ const NotificationManager = ({ currentUser }) => {
 
     // Écouter les fichiers partagés
     newSocket.on('fileShared', (file) => {
-      console.log('📁 Fichier partagé reçu:', file);
+  // ...log supprimé pour la production...
       
       if (!isWindowFocused && file.sender.id !== currentUser.id) {
         notificationService.showFileNotification(

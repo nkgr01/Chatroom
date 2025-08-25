@@ -26,7 +26,7 @@ class PWAService {
       this.isInstalled = true;
       this.deferredPrompt = null;
       this.hideInstallBanner();
-      console.log('✅ ConnectChat installé avec succès');
+  // ...log supprimé pour la production...
     });
 
     // Écouter les changements de connectivité
@@ -44,7 +44,7 @@ class PWAService {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('🔧 Service Worker enregistré:', registration);
+  // ...log supprimé pour la production...
 
         // Écouter les mises à jour
         registration.addEventListener('updatefound', () => {
@@ -64,7 +64,7 @@ class PWAService {
         });
 
       } catch (error) {
-        console.error('❌ Erreur lors de l\'enregistrement du Service Worker:', error);
+  // ...log supprimé pour la production...
       }
     }
   }
@@ -109,9 +109,9 @@ class PWAService {
       const { outcome } = await this.deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
-        console.log('✅ Utilisateur a accepté l\'installation');
+  // ...log supprimé pour la production...
       } else {
-        console.log('❌ Utilisateur a refusé l\'installation');
+  // ...log supprimé pour la production...
       }
       
       this.deferredPrompt = null;
@@ -195,7 +195,7 @@ class PWAService {
         this.showUpdateBanner();
         break;
       case 'CACHE_UPDATED':
-        console.log('📦 Cache mis à jour:', payload);
+  // ...log supprimé pour la production...
         break;
     }
   }
@@ -228,10 +228,10 @@ class PWAService {
       return new Promise((resolve) => {
         channel.port1.onmessage = (event) => {
           if (event.data.success) {
-            console.log('🗑️ Cache vidé avec succès');
+            // ...log supprimé pour la production...
             resolve(true);
           } else {
-            console.error('❌ Erreur lors du vidage du cache');
+            // ...log supprimé pour la production...
             resolve(false);
           }
         };
