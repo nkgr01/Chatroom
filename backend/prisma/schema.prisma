@@ -6,164 +6,163 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
--- Enable UUID extension if needed (for Prisma)
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+generator client {
+  provider = "prisma-client-js"
+}
 
--- Table: blocked_users
-CREATE TABLE "blocked_users" (
-  "id" SERIAL PRIMARY KEY,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "blockerId" INTEGER NOT NULL,
-  "blockedId" INTEGER NOT NULL
-);
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
 
--- Table: deleted_message_users
-CREATE TABLE "deleted_message_users" (
-  "id" SERIAL PRIMARY KEY,
-  "userId" INTEGER NOT NULL,
-  "messageId" INTEGER NOT NULL,
-  "deletedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+model User {
+  id          Int       @id @default(autoincrement())
+  username    String    @unique
+  email       String    @unique
+  password    String
+  age         Int
+  gender      String
+  interests   String
+  intentions  String
+  avatar      String?
+  isOnline    Boolean   @default(false)
+  lastSeen    DateTime  @default(now())
+  isBlocked   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
--- Table: messages
-CREATE TABLE "messages" (
-  "id" SERIAL PRIMARY KEY,
-  "content" TEXT NOT NULL,
-  "isPrivate" BOOLEAN NOT NULL DEFAULT FALSE,
-  "isEdited" BOOLEAN NOT NULL DEFAULT FALSE,
-  "isDeleted" BOOLEAN NOT NULL DEFAULT FALSE,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
-  "senderId" INTEGER NOT NULL,
-  "receiverId" INTEGER,
-  "roomId" INTEGER
-);
+  // Relations
+  sentMessages      Message[]    @relation("MessageSender")
+  receivedMessages  Message[]    @relation("MessageReceiver")
+  rooms             RoomUser[]
+  createdRooms      Room[]       @relation("RoomCreator")
+  sharedFiles       SharedFile[]
+  receivedFiles     SharedFile[] @relation("SharedFileReceiver")
+  blockedUsers      BlockedUser[] @relation("BlockerUser")
+  blockedByUsers    BlockedUser[] @relation("BlockedUser")
+  deletedMessages   DeletedMessageUser[]
+  reactions         MessageReaction[]
 
--- Table: rooms
-CREATE TABLE "rooms" (
-  "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR(191) NOT NULL,
-  "description" VARCHAR(191),
-  "type" VARCHAR(191) NOT NULL,
-  "icon" VARCHAR(191) NOT NULL DEFAULT '?',
-  "isPrivate" BOOLEAN NOT NULL DEFAULT FALSE,
-  "maxMembers" INTEGER NOT NULL DEFAULT 100,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
-  "creatorId" INTEGER NOT NULL
-);
+  @@map("users")
+}
 
--- Table: room_users
-CREATE TABLE "room_users" (
-  "id" SERIAL PRIMARY KEY,
-  "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "isMuted" BOOLEAN NOT NULL DEFAULT FALSE,
-  "role" VARCHAR(191) NOT NULL DEFAULT 'member',
-  "userId" INTEGER NOT NULL,
-  "roomId" INTEGER NOT NULL
-);
+model Room {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  type        String    // Rencontres, Amitié, Mariage, etc.
+  icon        String    @default("💬")
+  isPrivate   Boolean   @default(false)
+  maxMembers  Int       @default(100)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
--- Table: shared_files
-CREATE TABLE "shared_files" (
-  "id" SERIAL PRIMARY KEY,
-  "fileName" VARCHAR(191) NOT NULL,
-  "originalName" VARCHAR(191) NOT NULL,
-  "filePath" VARCHAR(191) NOT NULL,
-  "fileType" VARCHAR(191) NOT NULL,
-  "fileSize" INTEGER NOT NULL,
-  "mimeType" VARCHAR(191) NOT NULL,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "senderId" INTEGER NOT NULL,
-  "roomId" INTEGER,
-  "receiverId" INTEGER
-);
+  // Relations
+  creator     User        @relation("RoomCreator", fields: [creatorId], references: [id])
+  creatorId   Int
+  messages    Message[]
+  users       RoomUser[]
+  sharedFiles SharedFile[]
 
--- Table: users
-CREATE TABLE "users" (
-  "id" SERIAL PRIMARY KEY,
-  "username" VARCHAR(191) NOT NULL,
-  "email" VARCHAR(191) NOT NULL,
-  "password" VARCHAR(191) NOT NULL,
-  "age" INTEGER NOT NULL,
-  "gender" VARCHAR(191) NOT NULL,
-  "interests" VARCHAR(191) NOT NULL,
-  "intentions" VARCHAR(191) NOT NULL,
-  "avatar" VARCHAR(191),
-  "isOnline" BOOLEAN NOT NULL DEFAULT FALSE,
-  "lastSeen" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "isBlocked" BOOLEAN NOT NULL DEFAULT FALSE,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL
-);
+  @@map("rooms")
+}
 
--- Table: _prisma_migrations (Prisma gère ça, mais on la crée si besoin)
-CREATE TABLE "_prisma_migrations" (
-  "id" VARCHAR(36) PRIMARY KEY,
-  "checksum" VARCHAR(64) NOT NULL,
-  "finished_at" TIMESTAMP(3),
-  "migration_name" VARCHAR(255) NOT NULL,
-  "logs" TEXT,
-  "rolled_back_at" TIMESTAMP(3),
-  "started_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "applied_steps_count" INTEGER NOT NULL DEFAULT 0
-);
+model RoomUser {
+  id        Int      @id @default(autoincrement())
+  joinedAt  DateTime @default(now())
+  isMuted   Boolean  @default(false)
+  role      String   @default("member") // 'admin', 'member', 'moderator', etc.
 
--- Index uniques
-CREATE UNIQUE INDEX "blocked_users_blockerId_blockedId_key" ON "blocked_users"("blockerId", "blockedId");
-CREATE UNIQUE INDEX "deleted_message_users_userId_messageId_key" ON "deleted_message_users"("userId", "messageId");
-CREATE UNIQUE INDEX "rooms_name_key" ON "rooms"("name");
-CREATE UNIQUE INDEX "room_users_userId_roomId_key" ON "room_users"("userId", "roomId");
-CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    Int
 
--- Index pour les clés étrangères
-CREATE INDEX "blocked_users_blockedId_fkey" ON "blocked_users"("blockedId");
-CREATE INDEX "deleted_message_users_messageId_fkey" ON "deleted_message_users"("messageId");
-CREATE INDEX "messages_senderId_fkey" ON "messages"("senderId");
-CREATE INDEX "messages_receiverId_fkey" ON "messages"("receiverId");
-CREATE INDEX "messages_roomId_fkey" ON "messages"("roomId");
-CREATE INDEX "rooms_creatorId_fkey" ON "rooms"("creatorId");
-CREATE INDEX "room_users_roomId_fkey" ON "room_users"("roomId");
-CREATE INDEX "shared_files_senderId_fkey" ON "shared_files"("senderId");
-CREATE INDEX "shared_files_roomId_fkey" ON "shared_files"("roomId");
-CREATE INDEX "shared_files_receiverId_fkey" ON "shared_files"("receiverId");
+  @@unique([userId, roomId])
+  @@map("room_users")
+}
 
--- Contraintes (Foreign Keys)
-ALTER TABLE "blocked_users" ADD CONSTRAINT "blocked_users_blockerId_fkey" 
-  FOREIGN KEY ("blockerId") REFERENCES "users"("id") ON UPDATE CASCADE;
+model Message {
+  id          Int       @id @default(autoincrement())
+  content     String    @db.Text // Contenu chiffré
+  isPrivate   Boolean   @default(false)
+  isEdited    Boolean   @default(false)
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-ALTER TABLE "blocked_users" ADD CONSTRAINT "blocked_users_blockedId_fkey" 
-  FOREIGN KEY ("blockedId") REFERENCES "users"("id") ON UPDATE CASCADE;
+  // Relations
+  sender      User      @relation("MessageSender", fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User?     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  receiverId  Int?      // Pour les messages privés
+  room        Room?     @relation(fields: [roomId], references: [id])
+  roomId      Int?      // Pour les messages de salle
+  deletedBy   DeletedMessageUser[]
+  reactions   MessageReaction[]
 
-ALTER TABLE "deleted_message_users" ADD CONSTRAINT "deleted_message_users_userId_fkey" 
-  FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  @@map("messages")
+}
 
-ALTER TABLE "deleted_message_users" ADD CONSTRAINT "deleted_message_users_messageId_fkey" 
-  FOREIGN KEY ("messageId") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+model SharedFile {
+  id          Int       @id @default(autoincrement())
+  fileName    String
+  originalName String
+  filePath    String
+  fileType    String    // image, video, document, audio
+  fileSize    Int
+  mimeType    String
+  createdAt   DateTime  @default(now())
 
-ALTER TABLE "messages" ADD CONSTRAINT "messages_senderId_fkey" 
-  FOREIGN KEY ("senderId") REFERENCES "users"("id") ON UPDATE CASCADE;
+  // Relations
+  sender      User      @relation(fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User?     @relation("SharedFileReceiver", fields: [receiverId], references: [id])
+  receiverId  Int?      // Pour les fichiers privés
+  room        Room?     @relation(fields: [roomId], references: [id])
+  roomId      Int?
 
-ALTER TABLE "messages" ADD CONSTRAINT "messages_receiverId_fkey" 
-  FOREIGN KEY ("receiverId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  @@map("shared_files")
+}
 
-ALTER TABLE "messages" ADD CONSTRAINT "messages_roomId_fkey" 
-  FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+model BlockedUser {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
-ALTER TABLE "rooms" ADD CONSTRAINT "rooms_creatorId_fkey" 
-  FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON UPDATE CASCADE;
+  // Relations
+  blocker   User     @relation("BlockerUser", fields: [blockerId], references: [id])
+  blockerId Int
+  blocked   User     @relation("BlockedUser", fields: [blockedId], references: [id])
+  blockedId Int
 
-ALTER TABLE "room_users" ADD CONSTRAINT "room_users_userId_fkey" 
-  FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  @@unique([blockerId, blockedId])
+  @@map("blocked_users")
+}
 
-ALTER TABLE "room_users" ADD CONSTRAINT "room_users_roomId_fkey" 
-  FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+model DeletedMessageUser {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId Int
+  deletedAt DateTime @default(now())
 
-ALTER TABLE "shared_files" ADD CONSTRAINT "shared_files_senderId_fkey" 
-  FOREIGN KEY ("senderId") REFERENCES "users"("id") ON UPDATE CASCADE;
+  @@unique([userId, messageId])
+  @@map("deleted_message_users")
+}
 
-ALTER TABLE "shared_files" ADD CONSTRAINT "shared_files_roomId_fkey" 
-  FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+model MessageReaction {
+  id        Int      @id @default(autoincrement())
+  emoji     String   // Emoji de la réaction
+  createdAt DateTime @default(now())
 
-ALTER TABLE "shared_files" ADD CONSTRAINT "shared_files_receiverId_fkey" 
-  FOREIGN KEY ("receiverId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId Int
+
+  @@unique([userId, messageId, emoji]) // Un utilisateur ne peut réagir qu'une fois avec le même emoji
+  @@map("message_reactions")
+} 
