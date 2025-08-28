@@ -45,7 +45,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: (origin, callback) => {
-      const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:5174,http://192.168.1.23:5173,http://192.168.1.23:5174").split(",");
+      const allowedOrigins = (process.env.FRONTEND_URL).split(",");
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -71,7 +71,7 @@ app.use(morgan('combined', {
 // Middlewares globaux
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:5174,http://192.168.1.23:5173,http://192.168.1.23:5174").split(",");
+    const allowedOrigins = (process.env.FRONTEND_URL).split(",");
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -85,7 +85,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ===== MIDDLEWARES DE SÉCURITÉ PERSONNALISÉS =====
 
-// Logging de sécurité (doit être en premier)
+// Logging de sécurité
 app.use(securityLogger);
 
 // Protection CSRF
