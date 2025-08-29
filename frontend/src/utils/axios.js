@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuration de base d'axios
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://chatroom-backend-y1va.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL || 'https://chatroom-backend-y1va.onrender.com/api',
   timeout: 10000,
 });
 
