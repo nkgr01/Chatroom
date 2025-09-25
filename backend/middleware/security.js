@@ -54,7 +54,7 @@ const csrfProtection = (req, res, next) => {
   }
 
   // Vérifier que l'origine correspond aux domaines autorisés
-  const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:5174,http://192.168.1.23:5173,http://192.168.1.23:5174").split(",");
+  const allowedOrigins = (process.env.FRONTEND_URL || "https://chatrooms-five.vercel.app").split(",");
   
   if (origin && !allowedOrigins.includes(origin)) {
     console.warn(`🚫 Tentative d'accès CSRF depuis: ${origin}`);

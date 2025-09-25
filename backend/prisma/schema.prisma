@@ -3,9 +3,14 @@ generator client {
 }
 
 datasource db {
+<<<<<<< HEAD
   provider = "mongodb"
+=======
+  provider = "postgresql"
+>>>>>>> 99ff86553b1007782b1d1bc610147bc152df3ced
   url      = env("DATABASE_URL")
 }
+
 
 model User {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -122,9 +127,22 @@ model MessageReaction {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   emoji     String
   createdAt DateTime @default(now())
+<<<<<<< HEAD
   userId    String
   messageId String
   user      User     @relation(fields: [userId], references: [id])
   message   Message  @relation(fields: [messageId], references: [id])
   @@unique([userId, messageId, emoji])
 }
+=======
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId Int
+
+  @@unique([userId, messageId, emoji]) // Un utilisateur ne peut réagir qu'une fois avec le même emoji
+  @@map("message_reactions")
+} 
+>>>>>>> 99ff86553b1007782b1d1bc610147bc152df3ced
