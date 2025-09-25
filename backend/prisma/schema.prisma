@@ -3,158 +3,128 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  username    String    @unique
-  email       String    @unique
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  username    String   @unique
+  email       String   @unique
   password    String
   age         Int
   gender      String
   interests   String
   intentions  String
   avatar      String?
-  isOnline    Boolean   @default(false)
-  lastSeen    DateTime  @default(now())
-  isBlocked   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  sentMessages      Message[]    @relation("MessageSender")
-  receivedMessages  Message[]    @relation("MessageReceiver")
+  isOnline    Boolean  @default(false)
+  lastSeen    DateTime @default(now())
+  isBlocked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sentMessages      Message[]   @relation("MessageSender")
+  receivedMessages  Message[]   @relation("MessageReceiver")
   rooms             RoomUser[]
-  createdRooms      Room[]       @relation("RoomCreator")
+  createdRooms      Room[]      @relation("RoomCreator")
   sharedFiles       SharedFile[]
   receivedFiles     SharedFile[] @relation("SharedFileReceiver")
   blockedUsers      BlockedUser[] @relation("BlockerUser")
   blockedByUsers    BlockedUser[] @relation("BlockedUser")
   deletedMessages   DeletedMessageUser[]
   reactions         MessageReaction[]
-
-  @@map("users")
 }
 
 model Room {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
   description String?
-  type        String    // Rencontres, Amitié, Mariage, etc.
-  icon        String    @default("💬")
-  isPrivate   Boolean   @default(false)
-  maxMembers  Int       @default(100)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  creator     User        @relation("RoomCreator", fields: [creatorId], references: [id])
-  creatorId   Int
+  type        String
+  icon        String   @default("💬")
+  isPrivate   Boolean  @default(false)
+  maxMembers  Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creatorId   String
+  creator     User     @relation("RoomCreator", fields: [creatorId], references: [id])
   messages    Message[]
   users       RoomUser[]
   sharedFiles SharedFile[]
-
-  @@map("rooms")
 }
 
 model RoomUser {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   joinedAt  DateTime @default(now())
   isMuted   Boolean  @default(false)
-  role      String   @default("member") // 'admin', 'member', 'moderator', etc.
-
-  // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  roomId    Int
-
+  role      String   @default("member")
+  userId    String
+  roomId    String
+  user      User     @relation(fields: [userId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
   @@unique([userId, roomId])
-  @@map("room_users")
 }
 
 model Message {
-  id          Int       @id @default(autoincrement())
-  content     String    @db.Text // Contenu chiffré
-  isPrivate   Boolean   @default(false)
-  isEdited    Boolean   @default(false)
-  isDeleted   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  sender      User      @relation("MessageSender", fields: [senderId], references: [id])
-  senderId    Int
-  receiver    User?     @relation("MessageReceiver", fields: [receiverId], references: [id])
-  receiverId  Int?      // Pour les messages privés
-  room        Room?     @relation(fields: [roomId], references: [id])
-  roomId      Int?      // Pour les messages de salle
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  content     String
+  isPrivate   Boolean  @default(false)
+  isEdited    Boolean  @default(false)
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  senderId    String
+  receiverId  String?
+  roomId      String?
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+  receiver    User?    @relation("MessageReceiver", fields: [receiverId], references: [id])
+  room        Room?    @relation(fields: [roomId], references: [id])
   deletedBy   DeletedMessageUser[]
   reactions   MessageReaction[]
-
-  @@map("messages")
 }
 
 model SharedFile {
-  id          Int       @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   fileName    String
   originalName String
   filePath    String
-  fileType    String    // image, video, document, audio
+  fileType    String
   fileSize    Int
   mimeType    String
-  createdAt   DateTime  @default(now())
-
-  // Relations
-  sender      User      @relation(fields: [senderId], references: [id])
-  senderId    Int
-  receiver    User?     @relation("SharedFileReceiver", fields: [receiverId], references: [id])
-  receiverId  Int?      // Pour les fichiers privés
-  room        Room?     @relation(fields: [roomId], references: [id])
-  roomId      Int?
-
-  @@map("shared_files")
+  createdAt   DateTime @default(now())
+  senderId    String
+  receiverId  String?
+  roomId      String?
+  sender      User     @relation(fields: [senderId], references: [id])
+  receiver    User?    @relation("SharedFileReceiver", fields: [receiverId], references: [id])
+  room        Room?    @relation(fields: [roomId], references: [id])
 }
 
 model BlockedUser {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
-
-  // Relations
+  blockerId String
+  blockedId String
   blocker   User     @relation("BlockerUser", fields: [blockerId], references: [id])
-  blockerId Int
   blocked   User     @relation("BlockedUser", fields: [blockedId], references: [id])
-  blockedId Int
-
   @@unique([blockerId, blockedId])
-  @@map("blocked_users")
 }
 
 model DeletedMessageUser {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  messageId Int
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  messageId String
   deletedAt DateTime @default(now())
-
+  user      User     @relation(fields: [userId], references: [id])
+  message   Message  @relation(fields: [messageId], references: [id])
   @@unique([userId, messageId])
-  @@map("deleted_message_users")
 }
 
 model MessageReaction {
-  id        Int      @id @default(autoincrement())
-  emoji     String   // Emoji de la réaction
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  emoji     String
   createdAt DateTime @default(now())
-
-  // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  messageId Int
-
-  @@unique([userId, messageId, emoji]) // Un utilisateur ne peut réagir qu'une fois avec le même emoji
-  @@map("message_reactions")
-} 
+  userId    String
+  messageId String
+  user      User     @relation(fields: [userId], references: [id])
+  message   Message  @relation(fields: [messageId], references: [id])
+  @@unique([userId, messageId, emoji])
+}

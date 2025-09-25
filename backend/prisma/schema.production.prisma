@@ -1,12 +1,10 @@
-// Schéma de production pour ConnectChat
-// Ce fichier est utilisé pour les déploiements en production
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

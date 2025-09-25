@@ -35,7 +35,7 @@ self.addEventListener('install', (event) => {
 
 // Activer le service worker
 self.addEventListener('activate', (event) => {
-  console.log('🚀 Activation du Service Worker...');
+  //console.log('🚀 Activation du Service Worker...');
   
   event.waitUntil(
     caches.keys()
@@ -50,7 +50,7 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
-        console.log('✅ Service Worker activé');
+       // console.log('✅ Service Worker activé');
         return self.clients.claim();
       })
   );
@@ -62,31 +62,29 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   // Ignorer les requêtes non-GET
-  if (request.method !== 'GET') {
-    return;
-  }
+  if (request.method !== 'GET') return;
+
+  // Ignorer les requêtes non http(s)
+  if (!url.protocol.startsWith('http')) return;
 
   // Ignorer les requêtes vers l'API
-  if (url.pathname.startsWith('/api/')) {
-    return;
-  }
+  if (url.pathname.startsWith('/api/')) return;
 
   // Ignorer les requêtes de fichiers uploadés
-  if (url.pathname.startsWith('/uploads/')) {
-    return;
-  }
+  if (url.pathname.startsWith('/uploads/')) return;
 
   // Stratégie de cache pour les fichiers statiques
   if (STATIC_FILES.includes(url.pathname) || url.pathname.startsWith('/static/')) {
     event.respondWith(
       caches.match(request)
         .then((response) => {
-          if (response) {
-            return response;
-          }
+          if (response) return response;
           return fetch(request)
             .then((fetchResponse) => {
-              if (fetchResponse.status === 200) {
+              if (
+                fetchResponse.status === 200 &&
+                fetchResponse.type === 'basic'
+              ) {
                 const responseClone = fetchResponse.clone();
                 caches.open(STATIC_CACHE)
                   .then((cache) => {
@@ -105,10 +103,12 @@ self.addEventListener('fetch', (event) => {
     caches.match(request)
       .then((response) => {
         if (response) {
-          // Retourner la version en cache et mettre à jour en arrière-plan
           fetch(request)
             .then((fetchResponse) => {
-              if (fetchResponse.status === 200) {
+              if (
+                fetchResponse.status === 200 &&
+                fetchResponse.type === 'basic'
+              ) {
                 const responseClone = fetchResponse.clone();
                 caches.open(DYNAMIC_CACHE)
                   .then((cache) => {
@@ -116,16 +116,15 @@ self.addEventListener('fetch', (event) => {
                   });
               }
             })
-            .catch(() => {
-              // Ignorer les erreurs de mise à jour en arrière-plan
-            });
+            .catch(() => {});
           return response;
         }
-
-        // Si pas en cache, récupérer depuis le réseau
         return fetch(request)
           .then((fetchResponse) => {
-            if (fetchResponse.status === 200) {
+            if (
+              fetchResponse.status === 200 &&
+              fetchResponse.type === 'basic'
+            ) {
               const responseClone = fetchResponse.clone();
               caches.open(DYNAMIC_CACHE)
                 .then((cache) => {
@@ -135,7 +134,6 @@ self.addEventListener('fetch', (event) => {
             return fetchResponse;
           })
           .catch(() => {
-            // Retourner une page d'erreur hors ligne
             if (request.destination === 'document') {
               return caches.match('/offline.html');
             }
