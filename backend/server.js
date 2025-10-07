@@ -45,11 +45,14 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: (origin, callback) => {
-      const allowedOrigins = (process.env.FRONTEND_URL).split(",");
+      // Définir une origine par défaut pour le développement si FRONTEND_URL n'est pas défini
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+      const allowedOrigins = frontendUrl.split(",");
+      
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error("Origine non autorisée par CORS"));
       }
     },
     methods: ["GET", "POST"],
@@ -71,11 +74,14 @@ app.use(morgan('combined', {
 // Middlewares globaux
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = (process.env.FRONTEND_URL).split(",");
+    // Définir une origine par défaut pour le développement si FRONTEND_URL n'est pas défini
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+    const allowedOrigins = frontendUrl.split(",");
+    
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error("Origine non autorisée par CORS"));
     }
   },
   credentials: true
