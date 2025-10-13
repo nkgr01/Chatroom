@@ -105,7 +105,7 @@ export default function ChatInterface() {
     });
 
     socketRef.current.on("connect", () => {
-      socketRef.current.emit("joinRoom", parseInt(roomId));
+      socketRef.current.emit("joinRoom", roomId);
     });
 
     socketRef.current.on("newMessage", (msg) => {
@@ -113,7 +113,7 @@ export default function ChatInterface() {
     });
 
     socketRef.current.on("userTyping", (data) => {
-      if (data.roomId === parseInt(roomId) && data.userId !== user?.id) {
+      if (data.roomId === roomId && data.userId !== user?.id) {
         setIsTyping(true);
         setTimeout(() => setIsTyping(false), 3000);
       }
@@ -191,7 +191,7 @@ export default function ChatInterface() {
       // Envoyer seulement le message texte
       socketRef.current.emit("sendMessage", {
         content: message,
-        roomId: parseInt(roomId)
+        roomId: roomId
       });
       setMessage("");
     }
@@ -205,7 +205,7 @@ export default function ChatInterface() {
 
   const handleTyping = () => {
     socketRef.current.emit("typing", {
-      roomId: parseInt(roomId),
+      roomId: roomId,
       userId: user?.id
     });
   };

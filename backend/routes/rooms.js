@@ -75,7 +75,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Obtenir les détails d'une salle
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.id);
+    const roomId = req.params.id;
 
     const room = await prisma.room.findUnique({
       where: { id: roomId },
@@ -109,7 +109,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // Rejoindre une salle
 router.post('/:id/join', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.id);
+    const roomId = req.params.id;
     const userId = req.user.id;
 
     console.log(`Tentative de jointure: utilisateur ${userId} à la salle ${roomId}`);
@@ -144,7 +144,7 @@ router.post('/:id/join', authMiddleware, async (req, res) => {
 // Quitter une salle
 router.post('/:id/leave', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.id);
+    const roomId = req.params.id;
     const userId = req.user.id;
 
     await prisma.roomUser.deleteMany({ where: { userId, roomId } });
@@ -159,7 +159,7 @@ router.post('/:id/leave', authMiddleware, async (req, res) => {
 // Route temporaire pour ajouter l'utilisateur à une salle (pour corriger le problème)
 router.post('/:id/fix-membership', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.id);
+    const roomId = req.params.id;
     const userId = req.user.id;
 
     // Vérifier si l'utilisateur est déjà dans la salle
@@ -191,7 +191,7 @@ router.post('/:id/fix-membership', authMiddleware, async (req, res) => {
 // Vérifier l'appartenance à une salle
 router.get('/:id/check-membership', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.id);
+    const roomId = req.params.id;
     const userId = req.user.id;
 
     const membership = await prisma.roomUser.findFirst({
@@ -239,7 +239,7 @@ router.get('/:id/check-membership', authMiddleware, async (req, res) => {
 // Supprimer une salle (admin uniquement)
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.id);
+    const roomId = req.params.id;
     const userId = req.user.id;
 
     // Vérifier si l'utilisateur est admin de la salle

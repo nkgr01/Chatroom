@@ -76,7 +76,12 @@ const handleConnection = (io) => {
     socket.on('sendMessage', async (data) => {
       try {
         console.log('Tentative d\'envoi de message:', data);
-        const { content, roomId, receiverId, isPrivate = false } = data;
+        let { content, roomId, receiverId, isPrivate = false } = data;
+
+        // Correction DÉFINITIVE : Convertir les ID en chaînes de caractères dès le début
+        if (roomId) roomId = String(roomId);
+        if (receiverId) receiverId = String(receiverId);
+
         const encrypted = encrypt(content);
         console.log('Message chiffré:', encrypted);
 
@@ -85,8 +90,8 @@ const handleConnection = (io) => {
             content: JSON.stringify(encrypted),
             isPrivate,
             senderId: socket.user.id,
-            roomId: roomId || null,
-            receiverId: receiverId || null
+            roomId: roomId,       // Utilise la variable convertie
+            receiverId: receiverId  // Utilise la variable convertie
           },
           include: {
             sender: { select: { id: true, username: true, avatar: true } },
@@ -123,7 +128,7 @@ const handleConnection = (io) => {
         // Émettre un événement pour les notifications
         const notificationData = {
           ...responseMessage,
-          room: roomId ? await prisma.room.findUnique({ where: { id: roomId } }) : null
+          room: roomId ? await prisma.room.findUnique({ where: { id: roomId } }) : null // Utilise la variable convertie
         };
         
         if (roomId) {

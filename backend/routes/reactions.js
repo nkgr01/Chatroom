@@ -35,7 +35,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     // Vérifier que le message existe
     const message = await prisma.message.findUnique({
-      where: { id: parseInt(messageId) },
+      where: { id: messageId },
       include: {
         room: {
           include: {
@@ -77,7 +77,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const existingReaction = await prisma.messageReaction.findFirst({
       where: {
         userId: userId,
-        messageId: parseInt(messageId),
+        messageId: messageId,
         emoji: emoji
       }
     });
@@ -93,7 +93,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const reaction = await prisma.messageReaction.create({
       data: {
         userId: userId,
-        messageId: parseInt(messageId),
+        messageId: messageId,
         emoji: emoji
       },
       include: {
@@ -133,7 +133,7 @@ router.delete('/:messageId/:emoji', authenticateToken, async (req, res) => {
     const reaction = await prisma.messageReaction.findFirst({
       where: {
         userId: userId,
-        messageId: parseInt(messageId),
+        messageId: messageId,
         emoji: emoji
       }
     });
@@ -174,7 +174,7 @@ router.get('/:messageId', authenticateToken, async (req, res) => {
 
     // Vérifier que le message existe et que l'utilisateur y a accès
     const message = await prisma.message.findUnique({
-      where: { id: parseInt(messageId) },
+      where: { id: messageId },
       include: {
         room: {
           include: {
@@ -212,7 +212,7 @@ router.get('/:messageId', authenticateToken, async (req, res) => {
 
     // Récupérer toutes les réactions du message
     const reactions = await prisma.messageReaction.findMany({
-      where: { messageId: parseInt(messageId) },
+      where: { messageId: messageId },
       include: {
         user: {
           select: {

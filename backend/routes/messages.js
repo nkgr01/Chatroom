@@ -58,7 +58,7 @@ router.post('/send', authMiddleware, async (req, res) => {
 // Supprimer un message pour moi uniquement
 router.post('/:id/delete-for-me', authMiddleware, async (req, res) => {
   try {
-    const messageId = parseInt(req.params.id);
+    const messageId = req.params.id;
     const userId = req.user.id;
 
     // Vérifier que le message existe
@@ -92,7 +92,7 @@ router.get('/room/:roomId', authMiddleware, async (req, res) => {
       return res.status(500).json({ message: 'Erreur de base de données' });
     }
 
-    const roomId = parseInt(req.params.roomId);
+    const roomId = req.params.roomId;
     const { page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
     const userId = req.user.id;
@@ -197,71 +197,82 @@ router.get('/private', authMiddleware, async (req, res) => {
   try {
     const currentUserId = req.user.id;
 
-    // Récupérer toutes les conversations privées distinctes
-    const privateConversations = await prisma.$queryRaw`
-      SELECT DISTINCT 
-        CASE 
-          WHEN m.senderId = ${currentUserId} THEN m.receiverId
-          ELSE m.senderId
-        END as userId,
-        CASE 
-          WHEN m.senderId = ${currentUserId} THEN m.receiverId
-          ELSE m.senderId
-        END as id,
-        u.username,
-        u.avatar,
-        u.isOnline,
-        (
-          SELECT m2.content 
-          FROM messages m2 
-          WHERE (m2.senderId = ${currentUserId} AND m2.receiverId = u.id) 
-             OR (m2.senderId = u.id AND m2.receiverId = ${currentUserId})
-          ORDER BY m2.createdAt DESC 
-          LIMIT 1
-        ) as lastMessage,
-        (
-          SELECT m2.createdAt 
-          FROM messages m2 
-          WHERE (m2.senderId = ${currentUserId} AND m2.receiverId = u.id) 
-             OR (m2.senderId = u.id AND m2.receiverId = ${currentUserId})
-          ORDER BY m2.createdAt DESC 
-          LIMIT 1
-        ) as lastMessageTime
-      FROM messages m
-      JOIN users u ON (
-        CASE 
-          WHEN m.senderId = ${currentUserId} THEN m.receiverId
-          ELSE m.senderId
-        END = u.id
-      )
-      WHERE m.isPrivate = true 
-        AND (m.senderId = ${currentUserId} OR m.receiverId = ${currentUserId})
-        AND u.id != ${currentUserId}
-      ORDER BY lastMessageTime DESC
-    `;
-
-    // Traiter les conversations pour déchiffrer le dernier message
-    const processedConversations = privateConversations.map(conv => {
-      let decryptedLastMessage = null;
-      if (conv.lastMessage) {
-        try {
-          decryptedLastMessage = decrypt(JSON.parse(conv.lastMessage));
-        } catch (error) {
-          decryptedLastMessage = '[Message non déchiffrable]';
-        }
-      }
-
-      return {
-        id: conv.userId,
-        username: conv.username,
-        avatar: conv.avatar,
-        isOnline: conv.isOnline,
-        lastMessage: decryptedLastMessage,
-        lastMessageTime: conv.lastMessageTime
-      };
+    // Agréger les messages pour trouver les conversations uniques et le dernier message
+    const conversations = await prisma.message.groupBy({
+      by: ['senderId', 'receiverId'],
+      where: {
+        isPrivate: true,
+        OR: [
+          { senderId: currentUserId },
+          { receiverId: currentUserId },
+        ],
+      },
+      _max: {
+        createdAt: true,
+      },
     });
 
-    res.json({ conversations: processedConversations });
+    // Créer une map pour dédupliquer les conversations
+    const conversationMap = new Map();
+    for (const conv of conversations) {
+      const otherUserId = conv.senderId === currentUserId ? conv.receiverId : conv.senderId;
+      if (otherUserId === currentUserId) continue;
+
+      if (!conversationMap.has(otherUserId) || conversationMap.get(otherUserId).lastMessageTime < conv._max.createdAt) {
+        conversationMap.set(otherUserId, {
+          userId: otherUserId,
+          lastMessageTime: conv._max.createdAt,
+        });
+      }
+    }
+
+    // Récupérer les détails pour chaque conversation
+    const processedConversations = await Promise.all(
+      Array.from(conversationMap.values()).map(async (conv) => {
+        const [otherUser, lastMessage] = await Promise.all([
+          prisma.user.findUnique({
+            where: { id: conv.userId },
+            select: { id: true, username: true, avatar: true, isOnline: true },
+          }),
+          prisma.message.findFirst({
+            where: {
+              OR: [
+                { senderId: currentUserId, receiverId: conv.userId },
+                { senderId: conv.userId, receiverId: currentUserId },
+              ],
+            },
+            orderBy: { createdAt: 'desc' },
+          }),
+        ]);
+
+        if (!otherUser) return null;
+
+        let decryptedLastMessage = '[Message non déchiffrable]';
+        if (lastMessage && lastMessage.content) {
+          try {
+            decryptedLastMessage = decrypt(JSON.parse(lastMessage.content));
+          } catch (e) {
+            // Ignorer l'erreur de déchiffrement
+          }
+        }
+
+        return {
+          id: otherUser.id,
+          username: otherUser.username,
+          avatar: otherUser.avatar,
+          isOnline: otherUser.isOnline,
+          lastMessage: decryptedLastMessage,
+          lastMessageTime: lastMessage ? lastMessage.createdAt : null,
+        };
+      })
+    );
+
+    // Filtrer les résultats nuls et trier
+    const finalConversations = processedConversations
+      .filter(c => c !== null)
+      .sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+
+    res.json({ conversations: finalConversations });
   } catch (error) {
     console.error('Erreur récupération conversations privées:', error);
     res.status(500).json({ message: 'Erreur serveur' });
@@ -271,7 +282,7 @@ router.get('/private', authMiddleware, async (req, res) => {
 // Obtenir les messages privés avec un utilisateur spécifique
 router.get('/private/:userId', authMiddleware, async (req, res) => {
   try {
-    const otherUserId = parseInt(req.params.userId);
+    const otherUserId = req.params.userId;
     const currentUserId = req.user.id;
     const { page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
@@ -331,7 +342,7 @@ router.get('/private/:userId', authMiddleware, async (req, res) => {
 // Supprimer un message (admin ou auteur)
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const messageId = parseInt(req.params.id);
+    const messageId = req.params.id;
     const userId = req.user.id;
 
     const message = await prisma.message.findUnique({
@@ -340,7 +351,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
         room: {
           include: {
             users: {
-              where: { userId, isAdmin: true }
+              where: { userId, role: 'admin' } // Correction: role au lieu de isAdmin
             }
           }
         }

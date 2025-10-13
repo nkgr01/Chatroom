@@ -74,7 +74,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // Obtenir un utilisateur spécifique
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    const userId = req.params.id; // Pas de parseInt pour les ObjectId de MongoDB
     
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -145,7 +145,7 @@ router.patch('/profile', authenticateToken, upload.single('avatar'), async (req,
 // Bloquer un utilisateur
 router.post('/:id/block', authenticateToken, async (req, res) => {
   try {
-    const blockedId = parseInt(req.params.id);
+    const blockedId = req.params.id; // Pas de parseInt pour les ObjectId de MongoDB
     
     if (blockedId === req.user.id) {
       return res.status(400).json({ error: 'Impossible de se bloquer soi-même' });

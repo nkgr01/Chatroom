@@ -62,8 +62,8 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
         fileType,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
-        roomId: roomId ? parseInt(roomId) : null,
-        receiverId: receiverId ? parseInt(receiverId) : null,
+        roomId: roomId || null,
+        receiverId: receiverId || null,
         senderId
       },
       include: {
@@ -105,7 +105,7 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 // Obtenir les fichiers d'une salle
 router.get('/room/:roomId', authMiddleware, async (req, res) => {
   try {
-    const roomId = parseInt(req.params.roomId);
+    const roomId = req.params.roomId;
 
     // Vérifier l'accès à la salle
     const membership = await prisma.roomUser.findFirst({ where: { userId: req.user.id, roomId } });
@@ -129,7 +129,7 @@ router.get('/room/:roomId', authMiddleware, async (req, res) => {
 // Obtenir les fichiers privés entre deux utilisateurs
 router.get('/private/:userId', authMiddleware, async (req, res) => {
   try {
-    const otherUserId = parseInt(req.params.userId);
+    const otherUserId = req.params.userId;
     const currentUserId = req.user.id;
 
     // Vérifier si l'utilisateur n'est pas bloqué
