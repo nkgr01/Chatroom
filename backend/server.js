@@ -46,7 +46,7 @@ const io = socketIo(server, {
   cors: {
     origin: (origin, callback) => {
       // Définir une origine par défaut pour le développement si FRONTEND_URL n'est pas défini
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const allowedOrigins = frontendUrl.split(",");
       
       if (!origin || allowedOrigins.includes(origin)) {
@@ -75,7 +75,7 @@ app.use(morgan('combined', {
 app.use(cors({
   origin: (origin, callback) => {
     // Définir une origine par défaut pour le développement si FRONTEND_URL n'est pas défini
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5174';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const allowedOrigins = frontendUrl.split(",");
     
     if (!origin || allowedOrigins.includes(origin)) {
