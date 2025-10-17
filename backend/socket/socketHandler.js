@@ -38,12 +38,32 @@ const handleConnection = (io) => {
 
     // Rejoindre les salles de l'utilisateur
     const userRooms = await prisma.roomUser.findMany({
-      where: { userId: socket.user.id },
-      include: { room: true }
+      where: {
+        userId: socket.user.id
+      },
+      include: {
+        room: true
+      }
     });
 
-    userRooms.forEach(roomUser => {
+    // Filtrer les salles valides et rejoindre les salles
+    const validUserRooms = userRooms.filter(roomUser => roomUser.room !== null);
+    
+    // Gérer les RoomUser orphelins (optionnel)
+    const orphanedRoomUsers = userRooms.filter(roomUser => roomUser.room === null);
+    if (orphanedRoomUsers.length > 0) {
+      console.warn(`Trouvé ${orphanedRoomUsers.length} RoomUser orphelins pour l'utilisateur ${socket.user.username}`);
+      // Optionnellement supprimer les RoomUser orphelins
+      // await prisma.roomUser.deleteMany({
+      //   where: {
+      //     id: { in: orphanedRoomUsers.map(ru => ru.id) }
+      //   }
+      // });
+    }
+
+    validUserRooms.forEach(roomUser => {
       socket.join(`room_${roomUser.room.id}`);
+      console.log(`Utilisateur ${socket.user.username} a rejoint la salle ${roomUser.room.id}`);
     });
 
     // Notifier les autres utilisateurs
@@ -73,132 +93,117 @@ const handleConnection = (io) => {
     });
 
     // Gérer l'envoi de messages
-    socket.on('sendMessage', async (data) => {
-      try {
-        console.log('Tentative d\'envoi de message:', data);
-        let { content, roomId, receiverId, isPrivate = false } = data;
+  socket.on("sendMessage", async ({ content, roomId, receiverId, isPrivate = false }) => {
+    try {
+      // Vérifier si l'utilisateur est connecté
+      const userId = socket.user?.id;
+      if (!userId) {
+        socket.emit("messageError", "Non authentifié");
+        return;
+      }
 
-        // Correction DÉFINITIVE : Convertir les ID en chaînes de caractères dès le début
-        if (roomId) roomId = String(roomId);
-        if (receiverId) receiverId = String(receiverId);
+      console.log('Tentative d\'envoi de message:', { content, receiverId, isPrivate });
 
-        const encrypted = encrypt(content);
-        console.log('Message chiffré:', encrypted);
+      // Chiffrer le contenu du message
+      const encrypted = encrypt(content);
+      console.log('Message chiffré:', encrypted);
 
-        const message = await prisma.message.create({
-          data: {
-            content: JSON.stringify(encrypted),
-            isPrivate,
-            senderId: socket.user.id,
-            roomId: roomId,       // Utilise la variable convertie
-            receiverId: receiverId  // Utilise la variable convertie
-          },
-          include: {
-            sender: { select: { id: true, username: true, avatar: true } },
-            receiver: receiverId ? { select: { id: true, username: true, avatar: true } } : undefined
-          }
-        });
+      // Créer le message avec des types d'ID corrects pour MongoDB
+      const messageData = {
+        content: encrypted.iv + ':' + encrypted.encrypted,
+        senderId: userId,
+        isPrivate,
+        // Conversion des IDs en string pour MongoDB
+        ...(isPrivate 
+          ? { receiverId: receiverId.toString() } 
+          : { roomId: roomId.toString() })
+      };
 
-        console.log('Message enregistré en base:', message.id);
-
-        const responseMessage = {
-          ...message,
-          content: (() => {
-          try {
-            return decrypt(JSON.parse(message.content));
-          } catch (error) {
-            console.error('Erreur déchiffrement message socket:', error);
-            return '[Message non déchiffrable]';
-          }
-        })()
-        };
-
-        console.log('Message déchiffré pour envoi:', responseMessage.content);
-
-        if (roomId) {
-          console.log('Envoi du message à la salle:', roomId);
-          io.to(`room_${roomId}`).emit('newMessage', responseMessage);
-        } else if (receiverId) {
-          const receiverSockets = await io.fetchSockets();
-          const receiverSocket = receiverSockets.find(s => s.user.id === receiverId);
-          if (receiverSocket) receiverSocket.emit('newPrivateMessage', responseMessage);
-          socket.emit('newPrivateMessage', responseMessage);
+      const message = await prisma.message.create({
+        data: messageData,
+        include: {
+          sender: true,
+          receiver: true,
+          room: true
         }
-
-        // Émettre un événement pour les notifications
-        const notificationData = {
-          ...responseMessage,
-          room: roomId ? await prisma.room.findUnique({ where: { id: roomId } }) : null // Utilise la variable convertie
-        };
-        
-        if (roomId) {
-          socket.to(`room_${roomId}`).emit('notification', {
-            type: 'newMessage',
-            data: notificationData
-          });
-        } else if (receiverId) {
-          socket.to(`user_${receiverId}`).emit('notification', {
-            type: 'newPrivateMessage',
-            data: notificationData
-          });
-        }
-      } catch (error) {
-        console.error('Erreur envoi message:', error);
-        socket.emit('error', { message: 'Erreur lors de l\'envoi du message' });
-      }
-    });
-
-    // Gérer la frappe en cours
-    socket.on('typing', (data) => {
-      const { roomId, receiverId } = data;
-      if (roomId) {
-        socket.to(`room_${roomId}`).emit('userTyping', {
-          userId: socket.user.id,
-          username: socket.user.username,
-          roomId
-        });
-      } else if (receiverId) {
-        socket.to(`user_${receiverId}`).emit('userTyping', {
-          userId: socket.user.id,
-          username: socket.user.username
-        });
-      }
-    });
-
-    // Gérer l'arrêt de frappe
-    socket.on('stopTyping', (data) => {
-      const { roomId, receiverId } = data;
-      if (roomId) {
-        socket.to(`room_${roomId}`).emit('userStoppedTyping', {
-          userId: socket.user.id,
-          roomId
-        });
-      } else if (receiverId) {
-        socket.to(`user_${receiverId}`).emit('userStoppedTyping', {
-          userId: socket.user.id
-        });
-      }
-    });
-
-    // Gérer les conversations privées
-    socket.on('joinPrivateChat', (userId) => {
-      socket.join(`user_${userId}`);
-    });
-
-    // Gérer la déconnexion
-    socket.on('disconnect', async () => {
-      console.log(`Utilisateur déconnecté: ${socket.user.username}`);
-      await prisma.user.update({
-        where: { id: socket.user.id },
-        data: { isOnline: false }
       });
-      socket.broadcast.emit('userOffline', {
+
+      // Déchiffrer le message pour l'envoi
+      const decrypted = decrypt({
+        iv: encrypted.iv,
+        encrypted: encrypted.encrypted
+      });
+
+      const messageToSend = {
+        ...message,
+        content: decrypted
+      };
+
+      // Émettre le message aux destinataires appropriés
+      if (isPrivate) {
+        socket.emit('newMessage', messageToSend);
+        socket.to(`user_${receiverId}`).emit('newMessage', messageToSend);
+      } else {
+        socket.to(`room_${roomId}`).emit('newMessage', messageToSend);
+      }
+    } catch (error) {
+      console.error('Erreur envoi message:', error);
+      socket.emit('messageError', 'Erreur lors de l\'envoi du message');
+    }
+  });
+
+  // Gérer la frappe en cours
+  socket.on('typing', (data) => {
+    const { roomId, receiverId } = data;
+    if (roomId) {
+      socket.to(`room_${roomId}`).emit('userTyping', {
+        userId: socket.user.id,
+        username: socket.user.username,
+        roomId
+      });
+    } else if (receiverId) {
+      socket.to(`user_${receiverId}`).emit('userTyping', {
         userId: socket.user.id,
         username: socket.user.username
       });
+    }
+  });
+
+  // Gérer l'arrêt de frappe
+  socket.on('stopTyping', (data) => {
+    const { roomId, receiverId } = data;
+    if (roomId) {
+      socket.to(`room_${roomId}`).emit('userStoppedTyping', {
+        userId: socket.user.id,
+        roomId
+      });
+    } else if (receiverId) {
+      socket.to(`user_${receiverId}`).emit('userStoppedTyping', {
+        userId: socket.user.id
+      });
+    }
+  });
+
+  // Gérer les conversations privées
+  socket.on('joinPrivateChat', (userId) => {
+    socket.join(`user_${userId}`);
+  });
+
+  // Gérer la déconnexion
+  socket.on('disconnect', async () => {
+    console.log(`Utilisateur déconnecté: ${socket.user.username}`);
+    await prisma.user.update({
+      where: { id: socket.user.id },
+      data: { isOnline: false }
     });
-  };
+    socket.broadcast.emit('userOffline', {
+      userId: socket.user.id,
+      username: socket.user.username
+    });
+  });
+  }
 };
+
 
 module.exports = {
   authenticateSocket,

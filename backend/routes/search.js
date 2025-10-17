@@ -175,10 +175,10 @@ router.get('/global', authenticateToken, async (req, res) => {
           age: true,
           gender: true
         },
-        orderBy: {
-          isOnline: 'desc',
-          username: 'asc'
-        },
+        orderBy: [
+          { isOnline: 'desc' },
+          { username: 'asc' }
+        ],
         take: parseInt(limit)
       });
 

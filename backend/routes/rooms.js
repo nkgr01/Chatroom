@@ -46,26 +46,74 @@ router.post('/', authMiddleware, async (req, res) => {
 // Obtenir toutes les salles
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const rooms = await prisma.room.findMany({
+    const userId = req.user.id;
+    
+    // Récupérer les salles créées par l'utilisateur
+    const createdRooms = await prisma.room.findMany({
+      where: {
+        creatorId: userId
+      },
       include: {
         users: {
           include: {
-            user: {
-              select: { id: true, username: true, avatar: true, isOnline: true }
-            }
+            user: true
           }
         },
-        _count: { select: { users: true } }
+        _count: {
+          select: {
+            users: true,
+            messages: true
+          }
+        }
       }
     });
 
-    const roomsWithStats = rooms.map(room => ({
-      ...room,
-      userCount: room._count.users,
-      onlineUsers: room.users.filter(ru => ru.user.isOnline).length
-    }));
+    // Récupérer les salles dont l'utilisateur est membre
+    const joinedRooms = await prisma.room.findMany({
+      where: {
+        users: {
+          some: {
+            userId: userId
+          }
+        },
+        creatorId: {
+          not: userId
+        }
+      },
+      include: {
+        users: {
+          include: {
+            user: true
+          }
+        },
+        _count: {
+          select: {
+            users: true,
+            messages: true
+          }
+        }
+      }
+    });
 
-    res.json({ rooms: roomsWithStats });
+    // S'assurer que les tableaux sont définis
+    const safeCreatedRooms = Array.isArray(createdRooms) ? createdRooms : [];
+    const safeJoinedRooms = Array.isArray(joinedRooms) ? joinedRooms : [];
+
+    // Fusionner et organiser les résultats
+    const rooms = {
+      created: safeCreatedRooms.map(room => ({
+        ...room,
+        userCount: room._count?.users || 0,
+        messageCount: room._count?.messages || 0,
+        role: 'creator'
+      })),
+      joined: safeJoinedRooms.map(room => ({
+        ...room,
+        userCount: room._count?.users || 0,
+        messageCount: room._count?.messages || 0,
+        role: 'member'
+      }))
+    };    res.json(rooms);
   } catch (error) {
     console.error('Erreur récupération salles:', error);
     res.status(500).json({ message: 'Erreur serveur' });

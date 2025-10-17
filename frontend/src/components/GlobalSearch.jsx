@@ -168,7 +168,7 @@ const GlobalSearch = ({ isOpen, onClose }) => {
           <div className="suggestions-container">
             <h4>Suggestions</h4>
             <div className="suggestions-list">
-              {suggestions.map((suggestion, index) => (
+              {suggestions.map((suggestion) => (
                 <div
                   key={`${suggestion.type}-${suggestion.id}`}
                   className="suggestion-item"
@@ -364,4 +364,3 @@ const GlobalSearch = ({ isOpen, onClose }) => {
 };
 
 export default GlobalSearch;
-

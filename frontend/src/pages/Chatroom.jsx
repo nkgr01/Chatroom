@@ -345,8 +345,16 @@ export default function Chatroom() {
       </div>
 
       {/* Modal de création de salle */}
-      {showModal && <CreateRoomModal onClose={() => setShowModal(false)} />}
-                  {showGlobalSearch && <GlobalSearch isOpen={showGlobalSearch} onClose={() => setShowGlobalSearch(false)} />}
+      {showModal && (
+        <CreateRoomModal 
+          onClose={() => setShowModal(false)} 
+          onRoomCreated={(newRoom) => {
+            setConversations(prev => [...prev, newRoom]);
+            setShowModal(false);
+          }}
+        />
+      )}
+      {showGlobalSearch && <GlobalSearch isOpen={showGlobalSearch} onClose={() => setShowGlobalSearch(false)} />}
     </div>
   );
 }

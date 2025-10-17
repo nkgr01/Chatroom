@@ -4,6 +4,8 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import "../style/chatinterface.css";
 
+import MediaPreview from '../components/MediaPreview';
+
 const EMOJIS = [
   "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
   "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚",
@@ -210,25 +212,25 @@ export default function ChatInterface() {
     });
   };
 
-  const handleFileSelect = (e) => {
+    const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      // Vérifier la taille du fichier (5Mo = 5 * 1024 * 1024 octets)
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        alert('Le fichier est trop volumineux. La taille maximale est de 5 Mo.');
+        return;
+      }
+
       setFile(selectedFile);
       setFileType(selectedFile.type);
       
       // Créer une prévisualisation
-      if (selectedFile.type.startsWith('image/')) {
+      if (selectedFile.type.startsWith('image/') ||
+          selectedFile.type.startsWith('video/') ||
+          selectedFile.type.startsWith('audio/')) {
         const reader = new FileReader();
         reader.onload = (e) => setFilePreview(e.target.result);
         reader.readAsDataURL(selectedFile);
-      } else if (selectedFile.type.startsWith('video/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => setFilePreview(e.target.result);
-        reader.readAsDataURL(selectedFile);
-      } else if (selectedFile.type.startsWith('audio/')) {
-        setFilePreview('audio');
-      } else {
-        setFilePreview('document');
       }
     }
   };
@@ -417,35 +419,15 @@ export default function ChatInterface() {
                        {/* Affichage des fichiers attachés au message */}
                        {msg.sharedFile && (
                          <div className="message-file">
-                           <div className="file-preview">
-                             {msg.sharedFile.mimeType?.startsWith('image/') ? (
-                               <img 
-                                 src={`${import.meta.env.VITE_API_URL.replace("/api", "")}/uploads/${msg.sharedFile.filePath}`}
-                                 alt={msg.sharedFile.originalName}
-                                 className="file-image"
-                               />
-                             ) : (
-                               <div className="file-info">
-                                 <div className="file-icon">
-                                   {msg.sharedFile.mimeType?.startsWith('video/') ? '🎥' : 
-                                    msg.sharedFile.mimeType?.startsWith('audio/') ? '🎵' : '📄'}
-                                 </div>
-                                 <div className="file-details">
-                                   <div className="file-name">{msg.sharedFile.originalName}</div>
-                                   <div className="file-size">
-                                     {(msg.sharedFile.fileSize / 1024).toFixed(0)} Ko
-                                   </div>
-                                 </div>
-                               </div>
-                             )}
-                             <a
-                               href={`${import.meta.env.VITE_API_URL.replace("/api", "")}/uploads/${msg.sharedFile.filePath}`}
-                               download
-                               className="file-download-btn"
-                             >
-                               ⬇️
-                             </a>
-                           </div>
+                           <MediaPreview file={msg.sharedFile} inMessage={true} />
+                           <a
+                             href={`${import.meta.env.VITE_API_URL.replace("/api", "")}/uploads/${msg.sharedFile.filePath}`}
+                             download
+                             className="file-download-btn"
+                             title="Télécharger"
+                           >
+                             ⬇️
+                           </a>
                          </div>
                        )}
                      </div>
@@ -518,7 +500,7 @@ export default function ChatInterface() {
               id="fileInput"
               type="file"
               style={{ display: "none" }}
-              onChange={e => setFile(e.target.files[0])}
+              onChange={handleFileSelect}
             />
             <textarea
               className="message-textarea"
@@ -563,24 +545,17 @@ export default function ChatInterface() {
            {sharedFiles.length > 0 ? (
              sharedFiles.map(file => (
                <div key={file.id} className="file-item">
-                 <div className="file-icon">
-                   {file.mimeType?.startsWith('image/') ? '🖼️' : 
-                    file.mimeType?.startsWith('video/') ? '🎥' : 
-                    file.mimeType?.startsWith('audio/') ? '🎵' : '📄'}
+                 <MediaPreview file={file} />
+                 <div className="file-actions">
+                   <a
+                     href={`${import.meta.env.VITE_API_URL.replace("/api", "")}/uploads/${file.filePath}`}
+                     download
+                     className="file-download"
+                     title="Télécharger"
+                   >
+                     ⬇️
+                   </a>
                  </div>
-                 <div className="file-info">
-                   <div className="file-name">{file.originalName}</div>
-                   <div className="file-meta">
-                     {(file.fileSize / 1024).toFixed(0)} Ko
-                   </div>
-                 </div>
-                 <a
-                   href={`${import.meta.env.VITE_API_URL.replace("/api", "")}/uploads/${file.filePath}`}
-                   download
-                   className="file-download"
-                 >
-                   ⬇️
-                 </a>
                </div>
              ))
            ) : (

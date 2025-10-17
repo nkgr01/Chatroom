@@ -44,17 +44,7 @@ const server = http.createServer(app);
 // Configuration Socket.IO avec CORS sécurisé
 const io = socketIo(server, {
   cors: {
-    origin: (origin, callback) => {
-      // Définir une origine par défaut pour le développement si FRONTEND_URL n'est pas défini
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const allowedOrigins = frontendUrl.split(",");
-      
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Origine non autorisée par CORS"));
-      }
-    },
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -73,18 +63,9 @@ app.use(morgan('combined', {
 
 // Middlewares globaux
 app.use(cors({
-  origin: (origin, callback) => {
-    // Définir une origine par défaut pour le développement si FRONTEND_URL n'est pas défini
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const allowedOrigins = frontendUrl.split(",");
-    
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Origine non autorisée par CORS"));
-    }
-  },
-  credentials: true
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -150,7 +131,28 @@ app.use('*', (req, res) => {
 // Middleware de gestion d'erreurs
 app.use((err, req, res, next) => {
   console.error('❌ Erreur:', err.stack);
-  res.status(500).json({ message: 'Erreur serveur interne' });
+
+  // Gestion des erreurs Prisma
+  if (err.constructor.name === 'PrismaClientValidationError') {
+    return res.status(400).json({
+      message: 'Erreur de validation des données',
+      details: err.message
+    });
+  }
+
+  // Gestion des erreurs MongoDB
+  if (err.name === 'MongoError' || err.name === 'ObjectId') {
+    return res.status(400).json({
+      message: 'Erreur de format MongoDB',
+      details: err.message
+    });
+  }
+
+  // Erreur par défaut
+  res.status(500).json({ 
+    message: 'Erreur serveur interne',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Configuration Socket.IO
