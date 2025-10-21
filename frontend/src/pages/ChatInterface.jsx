@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 import "../style/chatinterface.css";
 
 import MediaPreview from '../components/MediaPreview';
+import LinkPreview from '../components/LinkPreview';
 
 const EMOJIS = [
   "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
@@ -430,6 +431,14 @@ export default function ChatInterface() {
                            </a>
                          </div>
                        )}
+                       {/* Affichage des prévisualisations de liens */}
+                       {msg.linkPreviews && msg.linkPreviews.length > 0 && (
+                         <div className="message-links">
+                           {msg.linkPreviews.map((preview, idx) => (
+                             <LinkPreview key={idx} preview={preview} />
+                           ))}
+                         </div>
+                       )}
                      </div>
                     <div className="message-meta">
                       <span className="message-time">
@@ -568,4 +577,4 @@ export default function ChatInterface() {
       </div>
     </div>
   );
-} 
+}

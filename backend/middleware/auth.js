@@ -5,6 +5,12 @@ const prisma = new PrismaClient();
 
 const authenticateToken = async (req, res, next) => {
   try {
+    console.log('🔐 Tentative d\'authentification:', {
+      path: req.path,
+      method: req.method,
+      headers: req.headers.authorization ? 'Token présent' : 'Pas de token'
+    });
+    
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -37,6 +43,12 @@ const authenticateToken = async (req, res, next) => {
       return res.status(403).json({ error: 'Compte bloqué' });
     }
 
+    console.log('✅ Authentification réussie:', {
+      userId: user.id,
+      username: user.username,
+      path: req.path
+    });
+    
     req.user = user;
     next();
   } catch (error) {

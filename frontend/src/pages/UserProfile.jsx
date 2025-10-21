@@ -11,6 +11,8 @@ export default function UserProfile() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const [userRooms, setUserRooms] = useState({ created: [], joined: [] });
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -24,17 +26,21 @@ export default function UserProfile() {
         setError(null);
 
         // Récupérer les informations des utilisateurs
-        const [userResponse, currentUserResponse] = await Promise.all([
-    axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+        const [userResponse, currentUserResponse, roomsResponse] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
           }),
-    axios.get(`${import.meta.env.VITE_API_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` }
+          axios.get(`${import.meta.env.VITE_API_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${import.meta.env.VITE_API_URL}/rooms`, {
+            headers: { Authorization: `Bearer ${token}` }
           })
         ]);
 
         setUser(userResponse.data.user);
         setCurrentUser(currentUserResponse.data.user);
+        setUserRooms(roomsResponse.data);
         setLoading(false);
       } catch (error) {
         console.error("Erreur lors du chargement du profil:", error);
@@ -140,6 +146,42 @@ export default function UserProfile() {
         </li>
       </ul>
       
+      {currentUser?.id === user.id && (
+        <div className="userprofile-rooms">
+          <div className="rooms-section">
+            <h3>Salles créées ({userRooms.created.length})</h3>
+            <div className="rooms-grid">
+              {userRooms.created.map(room => (
+                <div key={room.id} className="room-card" onClick={() => navigate(`/room/${room.id}`)}>
+                  <h4>{room.name}</h4>
+                  <p>{room.description}</p>
+                  <div className="room-stats">
+                    <span>👥 {room.userCount}</span>
+                    <span>💬 {room.messageCount}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rooms-section">
+            <h3>Salles rejointes ({userRooms.joined.length})</h3>
+            <div className="rooms-grid">
+              {userRooms.joined.map(room => (
+                <div key={room.id} className="room-card" onClick={() => navigate(`/room/${room.id}`)}>
+                  <h4>{room.name}</h4>
+                  <p>{room.description}</p>
+                  <div className="room-stats">
+                    <span>👥 {room.userCount}</span>
+                    <span>💬 {room.messageCount}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="userprofile-actions">
         {currentUser?.id === user.id ? (
           <button className="userprofile-edit-btn" onClick={() => navigate("/profile/edit")}>

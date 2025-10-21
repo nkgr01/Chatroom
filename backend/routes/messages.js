@@ -171,13 +171,15 @@ router.get('/room/:roomId', authMiddleware, async (req, res) => {
       try {
         return {
           ...msg,
-          content: decrypt(JSON.parse(msg.content))
+          content: decrypt(JSON.parse(msg.content)),
+          linkPreviews: msg.linkPreviews ? JSON.parse(msg.linkPreviews) : null
         };
       } catch (error) {
         console.error('Erreur déchiffrement message ID:', msg.id, error);
         return {
           ...msg,
-          content: '[Message non déchiffrable]'
+          content: '[Message non déchiffrable]',
+          linkPreviews: null
         };
       }
     });
@@ -319,15 +321,38 @@ router.get('/private/:userId', authMiddleware, async (req, res) => {
 
     const decryptedMessages = messages.map(msg => {
       try {
+        let decryptedContent;
+        try {
+          // Essayer d'abord de parser le JSON
+          const parsedContent = JSON.parse(msg.content);
+          // Puis décrypter le contenu parsé
+          decryptedContent = decrypt(parsedContent);
+        } catch (parseError) {
+          console.log('Message déjà déchiffré ou format invalide:', msg.content);
+          // Si le parsing échoue, utiliser le contenu tel quel
+          decryptedContent = msg.content;
+        }
+
+        let parsedPreviews = null;
+        if (msg.linkPreviews) {
+          try {
+            parsedPreviews = JSON.parse(msg.linkPreviews);
+          } catch (previewError) {
+            console.log('Format de preview invalide:', msg.linkPreviews);
+          }
+        }
+
         return {
           ...msg,
-          content: decrypt(JSON.parse(msg.content))
+          content: decryptedContent,
+          linkPreviews: parsedPreviews
         };
       } catch (error) {
-        console.error('Erreur déchiffrement message:', error);
+        console.error('Erreur traitement message:', error);
         return {
           ...msg,
-          content: '[Message non déchiffrable]'
+          content: '[Message illisible]',
+          linkPreviews: null
         };
       }
     });

@@ -1,0 +1,109 @@
+.link-preview {
+  display: flex;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 400px;
+}
+
+.link-preview:hover {
+  background: #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.link-preview-image {
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  background: #dee2e6;
+}
+
+.link-preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.link-preview-content {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.link-preview-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #212529;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.link-preview-description {
+  font-size: 12px;
+  color: #6c757d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.link-preview-site {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #868e96;
+  margin-top: auto;
+}
+
+.link-icon {
+  font-size: 12px;
+}
+
+.link-site-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .link-preview {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .link-preview:hover {
+    background: #374151;
+  }
+
+  .link-preview-title {
+    color: #f7fafc;
+  }
+
+  .link-preview-description {
+    color: #a0aec0;
+  }
+
+  .link-preview-site {
+    color: #718096;
+  }
+
+  .link-preview-image {
+    background: #1a202c;
+  }
+}

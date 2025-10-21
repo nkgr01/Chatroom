@@ -124,7 +124,7 @@ export default function PrivateMessages() {
       auth: { token }
     });
 
-    socketRef.current.emit("joinPrivateChat", parseInt(actualUserId));
+    socketRef.current.emit("joinPrivateChat", actualUserId);
 
     socketRef.current.on("newPrivateMessage", (msg) => {
       setMessages((prev) => [...prev, msg]);
@@ -195,7 +195,7 @@ export default function PrivateMessages() {
         // Envoyer le message avec le fichier
         socketRef.current.emit("sendMessage", {
           content: message || "📎 Fichier partagé",
-          receiverId: parseInt(actualUserId),
+          receiverId: actualUserId,
           isPrivate: true,
           sharedFile: response.data.file
         });
@@ -216,7 +216,7 @@ export default function PrivateMessages() {
       // Envoyer seulement le message texte
       socketRef.current.emit("sendMessage", {
         content: message,
-        receiverId: parseInt(actualUserId),
+        receiverId: actualUserId,
         isPrivate: true
       });
       setMessage("");
@@ -231,7 +231,7 @@ export default function PrivateMessages() {
 
   const handleTyping = () => {
     socketRef.current.emit("typing", {
-      receiverId: parseInt(actualUserId)
+      receiverId: actualUserId
     });
   };
 

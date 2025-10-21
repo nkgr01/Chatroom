@@ -23,7 +23,7 @@ export default function CreateRoomModal({ onClose, onRoomCreated }) {
       onRoomCreated && onRoomCreated(res.data.room);
       onClose();
     } catch (err) {
-      setError("Erreur lors de la création de la salle");
+      setError(err.response?.data?.message || "Erreur lors de la création de la salle");
     }
   };
 

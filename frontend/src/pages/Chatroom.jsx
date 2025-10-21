@@ -34,7 +34,12 @@ export default function Chatroom() {
     // Récupérer les salles (conversations)
     axios.get(`${import.meta.env.VITE_API_URL}/rooms`, {
       headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setConversations(res.data.rooms || []));
+    }).then(res => {
+      console.log('Salles récupérées:', res.data);
+      // Combiner les salles créées et rejointes
+      const allRooms = [...(res.data.created || []), ...(res.data.joined || [])];
+      setConversations(allRooms);
+    });
 
     // Récupérer les utilisateurs en ligne
     axios.get(`${import.meta.env.VITE_API_URL}/users`, {
@@ -349,7 +354,15 @@ export default function Chatroom() {
         <CreateRoomModal 
           onClose={() => setShowModal(false)} 
           onRoomCreated={(newRoom) => {
-            setConversations(prev => [...prev, newRoom]);
+            console.log('Nouvelle salle créée:', newRoom);
+            // S'assurer que la nouvelle salle a le bon format
+            if (newRoom && newRoom.id) {
+              setConversations(prev => [...prev, {
+                ...newRoom,
+                userCount: newRoom.users?.length || 1,
+                messageCount: 0
+              }]);
+            }
             setShowModal(false);
           }}
         />

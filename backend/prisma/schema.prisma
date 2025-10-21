@@ -70,6 +70,7 @@ model Message {
   isPrivate   Boolean  @default(false)
   isEdited    Boolean  @default(false)
   isDeleted   Boolean  @default(false)
+  linkPreviews Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   senderId    String   @db.ObjectId
